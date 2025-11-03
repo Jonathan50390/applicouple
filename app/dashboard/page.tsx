@@ -82,41 +82,23 @@ export default function DashboardPage() {
 
     setAssociating(true);
 
-    const { data: partnerProfile, error: findError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('partner_code', partnerCode.toUpperCase())
-      .single();
+    const { data, error } = await supabase.rpc('associate_partner', {
+      partner_code_input: partnerCode.toUpperCase()
+    });
 
-    if (findError || !partnerProfile) {
-      alert('Code partenaire invalide');
+    if (error) {
+      alert('Erreur lors de l\'association: ' + error.message);
       setAssociating(false);
       return;
     }
 
-    if (partnerProfile.id === user!.id) {
-      alert('Vous ne pouvez pas vous associer avec vous-même');
-      setAssociating(false);
-      return;
-    }
-
-    const { error: updateError1 } = await supabase
-      .from('profiles')
-      .update({ partner_id: partnerProfile.id })
-      .eq('id', user!.id);
-
-    const { error: updateError2 } = await supabase
-      .from('profiles')
-      .update({ partner_id: user!.id })
-      .eq('id', partnerProfile.id);
-
-    if (!updateError1 && !updateError2) {
+    if (data && data.success) {
       setPartnerCode('');
+      setPartner(data.partner);
       await refreshProfile();
-      await loadUserData();
-      alert('❤️ Association réussie !');
+      alert('❤️ Association réussie ! Votre partenaire a également été associé.');
     } else {
-      alert('Erreur lors de l\'association');
+      alert(data?.error || 'Erreur lors de l\'association');
     }
 
     setAssociating(false);

@@ -11,28 +11,26 @@ export default function PointsDisplay({ points, level, className = '' }: PointsD
   const progress = (points % 100) / 100 * 100;
 
   return (
-    <div className={`bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-4 text-white ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <p className="text-sm opacity-90">Niveau</p>
-          <p className="text-3xl font-bold">{level}</p>
+    <div className={`bg-white border border-gray-200 rounded-lg p-3 ${className}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Niveau</span>
+          <span className="text-lg font-bold text-gray-800">{level}</span>
         </div>
-        <div className="text-right">
-          <p className="text-sm opacity-90">Points</p>
-          <p className="text-2xl font-bold">{points}</p>
+        <div className="flex-1">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <span>{points % 100} / 100 pts</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-1.5">
+            <div
+              className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-full h-1.5 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
-      </div>
-
-      <div className="mt-3">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span>Progression</span>
-          <span>{points % 100} / 100</span>
-        </div>
-        <div className="w-full bg-white/30 rounded-full h-2">
-          <div
-            className="bg-white rounded-full h-2 transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Total</span>
+          <span className="text-lg font-bold text-gray-800">{points}</span>
         </div>
       </div>
     </div>
