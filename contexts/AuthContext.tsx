@@ -75,30 +75,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          username: username,
-        },
-      },
     });
 
     if (error || !data.user) {
       return { error };
     }
 
-    // Update username in profile (profile is auto-created by trigger)
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ username })
-      .eq('id', data.user.id);
+    const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: data.user.id,
+      username,
+      email,
+      referral_code: referralCode,
+    });
 
     return { error: profileError };
   };
 
   const signOut = async () => {
-    setUser(null);
-    setProfile(null);
     await supabase.auth.signOut();
+    setProfile(null);
   };
 
   return (
