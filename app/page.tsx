@@ -9,7 +9,6 @@ import { CATEGORIES, DIFFICULTIES } from '@/lib/types';
 import ChallengeCard from '@/components/ChallengeCard';
 import Navigation from '@/components/Navigation';
 import PointsDisplay from '@/components/PointsDisplay';
-import PartnerStats from '@/components/PartnerStats';
 
 export default function Home() {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
@@ -131,12 +130,7 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-gray-800 mb-4">
             Bienvenue {profile.username} 👋
           </h1>
-
-          {profile.partner_id && (
-            <PartnerStats />
-          )}
-
-          <PointsDisplay points={profile.points} level={profile.level} className="mt-3" />
+          <PointsDisplay points={profile.points} level={profile.level} />
         </div>
 
         {!profile.partner_id ? (

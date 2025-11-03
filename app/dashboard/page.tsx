@@ -100,12 +100,6 @@ export default function DashboardPage() {
       return;
     }
 
-    if (partnerProfile.partner_id && partnerProfile.partner_id !== user!.id) {
-      alert('Ce partenaire est déjà associé avec quelqu\'un d\'autre');
-      setAssociating(false);
-      return;
-    }
-
     const { error: updateError1 } = await supabase
       .from('profiles')
       .update({ partner_id: partnerProfile.id })
@@ -118,9 +112,9 @@ export default function DashboardPage() {
 
     if (!updateError1 && !updateError2) {
       setPartnerCode('');
-      setPartner(partnerProfile);
       await refreshProfile();
-      alert('❤️ Association réussie ! Votre partenaire a également été associé.');
+      await loadUserData();
+      alert('❤️ Association réussie !');
     } else {
       alert('Erreur lors de l\'association');
     }
