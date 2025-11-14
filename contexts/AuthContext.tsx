@@ -86,11 +86,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error };
     }
 
-    // Update username in profile (profile is auto-created by trigger)
+    const generateCode = (length: number): string => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ username })
-      .eq('id', data.user.id);
+      .insert({
+        id: data.user.id,
+        username,
+        email,
+        partner_code: generateCode(6),
+        referral_code: generateCode(8),
+        points: 0,
+        level: 1,
+      });
 
     return { error: profileError };
   };
