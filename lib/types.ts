@@ -91,6 +91,7 @@ export interface ChallengePreferences {
   mode: 'random' | 'categories' | 'off';
   allowed_categories: string[];
   allowed_difficulties: string[];
+  show_challenge_before_accept: boolean;
   created_at: string;
   updated_at: string;
 }

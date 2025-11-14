@@ -12,6 +12,7 @@ export default function ReceivedChallengesPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [sentChallenges, setSentChallenges] = useState<SentChallenge[]>([]);
+  const [preferences, setPreferences] = useState<ChallengePreferences | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,16 @@ export default function ReceivedChallengesPage() {
 
   const loadReceivedChallenges = async () => {
     setLoading(true);
+
+    const { data: prefsData } = await supabase
+      .from('challenge_preferences')
+      .select('*')
+      .eq('user_id', user!.id)
+      .maybeSingle();
+
+    if (prefsData) {
+      setPreferences(prefsData);
+    }
 
     const { data, error } = await supabase
       .from('sent_challenges')
@@ -39,47 +50,10 @@ export default function ReceivedChallengesPage() {
   };
 
   const handleAccept = async (sentChallenge: SentChallenge) => {
-    const { data: preferences } = await supabase
-      .from('challenge_preferences')
-      .select('*')
-      .eq('user_id', user!.id)
-      .single();
-
-    if (preferences?.mode === 'off') {
-      alert('Vous avez désactivé la réception de défis dans vos préférences');
-      return;
-    }
-
-    if (preferences?.mode === 'categories') {
-      if (!preferences.allowed_categories.includes(sentChallenge.category)) {
-        alert('Cette catégorie n\'est pas autorisée dans vos préférences');
-        return;
-      }
-      if (!preferences.allowed_difficulties.includes(sentChallenge.difficulty)) {
-        alert('Ce niveau de difficulté n\'est pas autorisé dans vos préférences');
-        return;
-      }
-    }
-
-    const { data: challenges } = await supabase
-      .from('challenges')
-      .select('*')
-      .eq('category', sentChallenge.category)
-      .eq('difficulty', sentChallenge.difficulty)
-      .eq('is_approved', true);
-
-    if (!challenges || challenges.length === 0) {
-      alert('Aucun défi disponible pour cette catégorie et difficulté');
-      return;
-    }
-
-    const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
-
     const { error } = await supabase
       .from('sent_challenges')
       .update({
         status: 'accepted',
-        challenge_id: randomChallenge.id,
         responded_at: new Date().toISOString(),
       })
       .eq('id', sentChallenge.id);
@@ -137,6 +111,7 @@ export default function ReceivedChallengesPage() {
                   {pendingChallenges.map((sentChallenge) => {
                     const category = CATEGORIES.find((c) => c.id === sentChallenge.category);
                     const difficulty = DIFFICULTIES.find((d) => d.id === sentChallenge.difficulty);
+                    const showDetails = preferences?.show_challenge_before_accept !== false;
 
                     return (
                       <div
@@ -146,18 +121,49 @@ export default function ReceivedChallengesPage() {
                         <div className="flex items-start gap-4 mb-4">
                           <span className="text-5xl">{category?.icon}</span>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-semibold">
-                                {category?.name}
-                              </span>
-                              <span className="text-sm px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
-                                {difficulty?.name}
-                              </span>
-                            </div>
-                            <p className="text-gray-700 mb-2">
-                              <strong>{sentChallenge.sender?.username}</strong> vous a envoyé un défi !
-                            </p>
-                            <p className="text-sm text-gray-500">
+                            {showDetails ? (
+                              <>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                  {sentChallenge.challenge?.title}
+                                </h3>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-semibold">
+                                    {category?.name}
+                                  </span>
+                                  <span className="text-sm px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
+                                    {difficulty?.name}
+                                  </span>
+                                  <span className="text-sm px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold">
+                                    {sentChallenge.challenge?.points_reward} points
+                                  </span>
+                                </div>
+                                <p className="text-gray-700 mb-3">
+                                  {sentChallenge.challenge?.description}
+                                </p>
+                                <p className="text-sm text-gray-500 mb-2">
+                                  Envoyé par <strong>{sentChallenge.sender?.username}</strong>
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-semibold">
+                                    {category?.name}
+                                  </span>
+                                  <span className="text-sm px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
+                                    {difficulty?.name}
+                                  </span>
+                                  <span className="text-2xl ml-2">🎁</span>
+                                </div>
+                                <p className="text-gray-700 mb-2">
+                                  <strong>{sentChallenge.sender?.username}</strong> vous a envoyé un défi surprise !
+                                </p>
+                                <p className="text-sm text-gray-500 mb-2 italic">
+                                  Le défi sera révélé après acceptation
+                                </p>
+                              </>
+                            )}
+                            <p className="text-xs text-gray-400">
                               {new Date(sentChallenge.sent_at).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
                                 month: 'long',

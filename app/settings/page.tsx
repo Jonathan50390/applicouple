@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [mode, setMode] = useState<'random' | 'categories' | 'off'>('random');
   const [allowedCategories, setAllowedCategories] = useState<string[]>([]);
   const [allowedDifficulties, setAllowedDifficulties] = useState<string[]>([]);
+  const [showChallengeBeforeAccept, setShowChallengeBeforeAccept] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -40,6 +41,7 @@ export default function SettingsPage() {
       setMode(data.mode);
       setAllowedCategories(data.allowed_categories || []);
       setAllowedDifficulties(data.allowed_difficulties || []);
+      setShowChallengeBeforeAccept(data.show_challenge_before_accept !== false);
     }
 
     setLoading(false);
@@ -54,6 +56,7 @@ export default function SettingsPage() {
         mode,
         allowed_categories: allowedCategories,
         allowed_difficulties: allowedDifficulties,
+        show_challenge_before_accept: showChallengeBeforeAccept,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', user!.id);
@@ -167,6 +170,55 @@ export default function SettingsPage() {
                   <div className="font-bold">Désactivé</div>
                   <div className="text-sm opacity-90">
                     Ne pas recevoir de défis de votre partenaire
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            Visibilité des défis
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Choisissez si vous voulez voir le défi complet avant de l'accepter
+          </p>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowChallengeBeforeAccept(true)}
+              className={`w-full p-4 rounded-xl font-semibold transition-all border-2 text-left ${
+                showChallengeBeforeAccept
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white border-transparent'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-pink-300'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">👁️</span>
+                <div>
+                  <div className="font-bold">Voir le défi avant d'accepter</div>
+                  <div className="text-sm opacity-90">
+                    Vous verrez le titre, la description et les points avant d'accepter
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setShowChallengeBeforeAccept(false)}
+              className={`w-full p-4 rounded-xl font-semibold transition-all border-2 text-left ${
+                !showChallengeBeforeAccept
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white border-transparent'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-pink-300'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🎁</span>
+                <div>
+                  <div className="font-bold">Défi surprise</div>
+                  <div className="text-sm opacity-90">
+                    Vous ne verrez que la catégorie et difficulté, le défi sera révélé après acceptation
                   </div>
                 </div>
               </div>

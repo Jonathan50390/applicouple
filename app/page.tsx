@@ -101,11 +101,26 @@ export default function Home() {
       return;
     }
 
+    const { data: challenges } = await supabase
+      .from('challenges')
+      .select('*')
+      .eq('category', selectedCategory)
+      .eq('difficulty', selectedDifficulty)
+      .eq('is_approved', true);
+
+    if (!challenges || challenges.length === 0) {
+      alert('Aucun défi disponible pour cette catégorie et difficulté');
+      return;
+    }
+
+    const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+
     const { error } = await supabase.from('sent_challenges').insert({
       sender_id: user!.id,
       receiver_id: profile.partner_id,
       category: selectedCategory,
       difficulty: selectedDifficulty,
+      challenge_id: randomChallenge.id,
       status: 'pending',
     });
 
