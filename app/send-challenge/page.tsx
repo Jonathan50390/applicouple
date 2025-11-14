@@ -33,11 +33,27 @@ export default function SendChallengePage() {
     setLoading(true);
     setError('');
 
+    const { data: challenges } = await supabase
+      .from('challenges')
+      .select('*')
+      .eq('category', category)
+      .eq('difficulty', difficulty)
+      .eq('is_approved', true);
+
+    if (!challenges || challenges.length === 0) {
+      setError('Aucun défi disponible pour cette catégorie et difficulté');
+      setLoading(false);
+      return;
+    }
+
+    const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+
     const { error: insertError } = await supabase.from('sent_challenges').insert({
       sender_id: user!.id,
       receiver_id: profile.partner_id,
       category,
       difficulty,
+      challenge_id: randomChallenge.id,
       status: 'pending',
     });
 
