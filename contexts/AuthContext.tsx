@@ -31,6 +31,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (data && !error) {
       setProfile(data);
+    } else if (!data && !error) {
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        const generateCode = (length: number): string => {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          let result = '';
+          for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return result;
+        };
+
+        const username = userData.user.user_metadata?.username || userData.user.email?.split('@')[0] || 'user';
+
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            username,
+            email: userData.user.email!,
+            partner_code: generateCode(6),
+            referral_code: generateCode(8),
+            points: 0,
+            level: 1,
+          })
+          .select()
+          .single();
+
+        if (newProfile) {
+          setProfile(newProfile);
+        }
+      }
     }
   };
 
@@ -72,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -82,32 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    if (error || !data.user) {
-      return { error };
-    }
-
-    const generateCode = (length: number): string => {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let result = '';
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
-    };
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: data.user.id,
-        username,
-        email,
-        partner_code: generateCode(6),
-        referral_code: generateCode(8),
-        points: 0,
-        level: 1,
-      });
-
-    return { error: profileError };
+    return { error };
   };
 
   const signOut = async () => {
