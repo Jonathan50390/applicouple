@@ -1,76 +1,105 @@
-'use client';
-
+import { View, Text, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Profile } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PartnerStats() {
-  const { user, profile } = useAuth();
-  const [partner, setPartner] = useState<Profile | null>(null);
-  const [myActiveChallenges, setMyActiveChallenges] = useState(0);
-  const [partnerActiveChallenges, setPartnerActiveChallenges] = useState(0);
-
-  useEffect(() => {
-    if (user && profile?.partner_id) {
-      loadStats();
-    }
-  }, [user, profile]);
+  const { profile } = useAuth();
+  const [stats, setStats] = useState({
+    partnerName: 'Not connected',
+    totalChallenges: 0,
+    completedChallenges: 0,
+  });
 
   const loadStats = async () => {
     if (!profile?.partner_id) return;
 
-    const { data: partnerData } = await supabase
+    const { data: partner } = await supabase
       .from('profiles')
-      .select('*')
+      .select('username')
       .eq('id', profile.partner_id)
-      .single();
+      .maybeSingle();
 
-    if (partnerData) setPartner(partnerData);
-
-    const { count: myCount } = await supabase
+    const { count: total } = await supabase
       .from('sent_challenges')
       .select('*', { count: 'exact', head: true })
-      .eq('receiver_id', user!.id)
-      .eq('status', 'accepted');
+      .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`);
 
-    const { count: partnerCount } = await supabase
+    const { count: completed } = await supabase
       .from('sent_challenges')
       .select('*', { count: 'exact', head: true })
-      .eq('receiver_id', profile.partner_id)
-      .eq('status', 'accepted');
+      .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
+      .eq('status', 'completed');
 
-    setMyActiveChallenges(myCount || 0);
-    setPartnerActiveChallenges(partnerCount || 0);
+    setStats({
+      partnerName: partner?.username || 'Unknown',
+      totalChallenges: total || 0,
+      completedChallenges: completed || 0,
+    });
   };
 
-  if (!partner) return null;
+  useEffect(() => {
+    loadStats();
+  }, [profile?.partner_id]);
 
   return (
-    <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 border border-pink-100">
-      <div className="flex items-center justify-between">
-        <div className="flex-1 text-center">
-          <p className="text-xs text-gray-600 mb-1">Vous</p>
-          <p className="text-2xl font-bold text-gray-800">{profile?.points || 0}</p>
-          <p className="text-xs text-gray-500">points</p>
-          <p className="text-lg font-semibold text-pink-600 mt-1">{myActiveChallenges}</p>
-          <p className="text-xs text-gray-500">défis actifs</p>
-        </div>
-
-        <div className="px-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
-            <span className="text-2xl">❤️</span>
-          </div>
-        </div>
-
-        <div className="flex-1 text-center">
-          <p className="text-xs text-gray-600 mb-1">{partner.username}</p>
-          <p className="text-2xl font-bold text-gray-800">{partner.points}</p>
-          <p className="text-xs text-gray-500">points</p>
-          <p className="text-lg font-semibold text-purple-600 mt-1">{partnerActiveChallenges}</p>
-          <p className="text-xs text-gray-500">défis actifs</p>
-        </div>
-      </div>
-    </div>
+    <View style={styles.container}>
+      <Text style={styles.title}>Partnership Stats</Text>
+      <View style={styles.statsGrid}>
+        <View style={styles.stat}>
+          <Text style={styles.statLabel}>Partner</Text>
+          <Text style={styles.statValue}>{stats.partnerName}</Text>
+        </View>
+        <View style={styles.stat}>
+          <Text style={styles.statLabel}>Total</Text>
+          <Text style={styles.statValue}>{stats.totalChallenges}</Text>
+        </View>
+        <View style={styles.stat}>
+          <Text style={styles.statLabel}>Completed</Text>
+          <Text style={styles.statValue}>{stats.completedChallenges}</Text>
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  stat: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+});

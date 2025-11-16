@@ -1,0 +1,2 @@
+Placeholder for icon.png, splash.png, adaptive-icon.png, and favicon.png
+These will be generated or added later.

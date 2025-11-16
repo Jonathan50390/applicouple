@@ -1,38 +1,54 @@
-'use client';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface PointsDisplayProps {
   points: number;
   level: number;
-  className?: string;
 }
 
-export default function PointsDisplay({ points, level, className = '' }: PointsDisplayProps) {
-  const nextLevelPoints = level * 100;
-  const progress = (points % 100) / 100 * 100;
-
+export default function PointsDisplay({ points, level }: PointsDisplayProps) {
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-3 ${className}`}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Niveau</span>
-          <span className="text-lg font-bold text-gray-800">{level}</span>
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-            <span>{points % 100} / 100 pts</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
-            <div
-              className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-full h-1.5 transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Total</span>
-          <span className="text-lg font-bold text-gray-800">{points}</span>
-        </div>
-      </div>
-    </div>
+    <View style={styles.container}>
+      <View style={styles.pointsCard}>
+        <Text style={styles.label}>Points</Text>
+        <Text style={styles.value}>{points}</Text>
+      </View>
+      <View style={styles.levelCard}>
+        <Text style={styles.label}>Level</Text>
+        <Text style={styles.value}>{level}</Text>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  pointsCard: {
+    flex: 1,
+    backgroundColor: '#8b5cf6',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  levelCard: {
+    flex: 1,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.9,
+    marginBottom: 4,
+  },
+  value: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+});

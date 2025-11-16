@@ -1,43 +1,96 @@
-'use client';
-
+import { View, Text, StyleSheet } from 'react-native';
 import { Reward } from '@/lib/types';
 
 interface RewardBadgeProps {
   reward: Reward;
-  unlocked?: boolean;
-  unlockedAt?: string;
-  size?: 'sm' | 'md' | 'lg';
 }
 
-export default function RewardBadge({ reward, unlocked = false, unlockedAt, size = 'md' }: RewardBadgeProps) {
-  const sizeClasses = {
-    sm: 'w-16 h-16 text-2xl',
-    md: 'w-20 h-20 text-3xl',
-    lg: 'w-24 h-24 text-4xl',
-  };
-
+export default function RewardBadge({ reward }: RewardBadgeProps) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div
-        className={`${sizeClasses[size]} rounded-full flex items-center justify-center ${
-          unlocked
-            ? 'bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg'
-            : 'bg-gray-200 grayscale opacity-50'
-        } transition-all`}
-      >
-        <span>{reward.icon}</span>
-      </div>
-      <div className="text-center">
-        <p className={`font-semibold text-sm ${unlocked ? 'text-gray-800' : 'text-gray-400'}`}>
-          {reward.name}
-        </p>
-        <p className="text-xs text-gray-500">{reward.description}</p>
-        {unlocked && unlockedAt && (
-          <p className="text-xs text-green-600 mt-1">
-            Débloqué le {new Date(unlockedAt).toLocaleDateString('fr-FR')}
-          </p>
-        )}
-      </div>
-    </div>
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
+        <Text style={styles.icon}>{reward.icon}</Text>
+      </View>
+      <View style={styles.content}>
+        <Text style={styles.title}>{reward.title}</Text>
+        <Text style={styles.description} numberOfLines={1}>
+          {reward.description}
+        </Text>
+      </View>
+      {reward.unlocked ? (
+        <View style={styles.unlockedBadge}>
+          <Text style={styles.unlockedText}>✓</Text>
+        </View>
+      ) : (
+        <View style={styles.lockedBadge}>
+          <Text style={styles.lockedText}>🔒</Text>
+        </View>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  icon: {
+    fontSize: 24,
+  },
+  content: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  description: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  unlockedBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unlockedText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  lockedBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedText: {
+    fontSize: 14,
+  },
+});
